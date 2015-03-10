@@ -1,0 +1,39 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:id="@+id/relative">
+
+   <TextView 
+    android:textSize="30sp" 
+    android:id="@+id/name" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    />
+
+
+   <TextView 
+    android:textSize="20sp"
+    android:layout_below="@+id/name"
+    android:id="@+id/xval" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    />
+    
+    <TextView 
+    android:textSize="20sp"
+    android:id="@+id/yval" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:layout_below="@+id/xval"
+    />
+    
+    <TextView 
+    android:textSize="20sp"
+    android:id="@+id/zval" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:layout_below="@+id/yval" 
+    />
+  
+</RelativeLayout>
