@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">PressureAccelerator</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title">Ambient Air Pressure:</string>
+    <string name="Altitude">Pressure Altitude:</string>
+    <string name="alt_diff">Altitude Difference:</string>
+    <string name="start">START</string>
+    <string name="finish">FINISH</string>
+    <string name="baro_air_press">Barometric Air Pressure</string>
+    <string name="baro_air_pres">BAROMETRIC AIR PRESSURE</string>
+    <string name="upper_threshold">Upper Threshold:</string>
+    <string name="plus_threshold">+ Threshold Value</string>
+    <string name="minus_threshold">- Threshold Value</string>
+    <string name="level_changed">Level Changed:</string>
+    <string name="press_diff">Difference:</string>
+    
+</resources>
