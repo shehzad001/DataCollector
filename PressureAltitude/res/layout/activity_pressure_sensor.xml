@@ -9,111 +9,291 @@
     tools:context="com.example.pressurealtitude.PressureSensor" >
 
     <TextView
-        android:id="@+id/textViewTitle"
+        android:id="@+id/textViewTitleBarometerPressureAltitude"
+        android:text="@string/baro_air_pres"
+        android:textColor="#0835C9" 
+        android:textSize="20sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
-        android:text="@string/tile"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/textViewTitlePress"
+        android:text="@string/title"
         android:textColor="#0835C9"
-        android:textSize="18sp" />
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textViewTitleBarometerPressureAltitude"
+        android:layout_marginTop="27dp" />
+
+    <TextView
+        android:id="@+id/TextViewTitleAltd"
+        android:text="@string/Altitude"
+		android:textSize="15sp"
+        android:textColor="#0835C9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitlePress"
+        android:layout_alignStart="@+id/textViewTitlePress"
+        android:layout_alignRight="@+id/textViewTitlePress"
+        android:layout_alignEnd="@+id/textViewTitlePress"
+        android:layout_below="@+id/textViewTitlePress" />
+
+    <TextView
+        android:id="@+id/textViewAltd"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/TextViewTitleAltd"
+        android:layout_alignBottom="@+id/TextViewTitleAltd"
+        android:layout_alignLeft="@+id/textViewPress"
+        android:layout_alignStart="@+id/textViewPress"
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewTitlePressDiff"
+        android:text="@string/press_diff"
+		android:textSize="15sp"
+        android:textColor="#0835C9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/TextViewTitleAltd"
+        android:layout_alignStart="@+id/TextViewTitleAltd"
+        android:layout_below="@+id/TextViewTitleAltd"
+        android:layout_marginTop="98dp" />
+
+    <TextView
+        android:id="@+id/textViewP0"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewTitlePressDiff"
+        android:layout_alignBottom="@+id/textViewTitlePressDiff"
+        android:layout_centerHorizontal="true"
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewP1"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewAltd"
+        android:layout_alignStart="@+id/textViewAltd"
+        android:layout_alignTop="@+id/textViewP0"
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewTitleAltdDiff"
+        android:text="@string/alt_diff"
+		android:textSize="15sp"
+        android:textColor="#0835C9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitlePressDiff"
+        android:layout_alignStart="@+id/textViewTitlePressDiff"
+        android:layout_centerVertical="true" />
+
+    <TextView
+        android:id="@+id/textViewAltdDiff"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewTitleAltdDiff"
+        android:layout_alignBottom="@+id/textViewTitleAltdDiff"
+        android:layout_alignLeft="@+id/textViewP1"
+        android:layout_alignStart="@+id/textViewP1"
+		android:text="Hello" />
+
+    <Button
+        android:id="@+id/buttonStart"
+        android:onClick="startClick"
+        android:text="@string/start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitleAltdDiff"
+        android:layout_alignStart="@+id/textViewTitleAltdDiff"
+        android:layout_below="@+id/textViewTitleAltdDiff" />
+
+    <Button
+        android:id="@+id/buttonFinish"
+        android:onClick="finishClick"
+        android:text="@string/finish"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonStart"
+        android:layout_toEndOf="@+id/buttonStart"
+        android:layout_toRightOf="@+id/buttonStart" />
+
+    <TextView
+        android:id="@+id/textViewTitleLevelChanged"
+        android:text="@string/level_changed"
+		android:textSize="15sp"
+        android:textColor="#0835C9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonStart"
+        android:layout_alignStart="@+id/buttonStart"
+        android:layout_below="@+id/buttonStart"
+        android:layout_marginTop="27dp" />
+
+    <TextView
+        android:id="@+id/textViewLevelChanged"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewTitleLevelChanged"
+        android:layout_alignBottom="@+id/textViewTitleLevelChanged"
+        android:layout_alignLeft="@+id/textViewAltdDiff"
+        android:layout_alignStart="@+id/textViewAltdDiff"
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewTitleUpperThres"
+        android:text="@string/upper_threshold"
+		android:textSize="15sp"
+        android:textColor="#0835C9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitleLevelChanged"
+        android:layout_alignStart="@+id/textViewTitleLevelChanged"
+        android:layout_below="@+id/textViewTitleLevelChanged"
+        android:layout_marginTop="14dp" />
+
+    <TextView
+        android:id="@+id/textViewUpperThres"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewTitleUpperThres"
+        android:layout_alignBottom="@+id/textViewTitleUpperThres"
+        android:layout_alignLeft="@+id/textViewLevelChanged"
+        android:layout_alignStart="@+id/textViewLevelChanged"
+		android:text="Hello" />
+
+    <Button
+        android:id="@+id/buttonMinusThres"
+        android:text="@string/minus_threshold"
+        android:onClick="upperThres"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitleUpperThres"
+        android:layout_alignStart="@+id/textViewTitleUpperThres"
+        android:layout_below="@+id/textViewTitleUpperThres" />
+
+    <Button
+        android:id="@+id/buttonPlusThres"
+        android:text="@string/plus_threshold"
+        android:onClick="upperThres"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonMinusThres"
+        android:layout_alignStart="@+id/buttonMinusThres"
+        android:layout_below="@+id/buttonMinusThres" />
 
     <TextView
         android:id="@+id/textViewPress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_below="@+id/textViewTitle"
-        android:textColor="#08C9BD"
-        android:textSize="40sp" />
-
-    <TextView
-        android:id="@+id/TextViewTitleAltd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_below="@+id/textViewPress"
-        android:layout_marginTop="36dp"
-        android:text="@string/Altitude"
-        android:textColor="#0835C9"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/textViewAltd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:textColor="#08C9BD"
-        android:textSize="40sp"
-        android:layout_below="@+id/TextViewTitleAltd" />
-    
-    <TextView
-        android:id="@+id/textViewTitleAltdDiff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewAltd"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_marginTop="34dp"
-        android:text="@string/alt_diff"
-        android:textColor="#0835C9"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/textViewAltdDiff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewTitleAltdDiff"
-        android:layout_marginTop="34dp"
-        android:textColor="#08C9BD"
-        android:textSize="40sp" />
-
-    <TextView
-        android:id="@+id/textViewP0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/textViewTitleAltdDiff"
-        android:layout_marginStart="70sp"
-        android:layout_marginLeft="70sp"
-        android:layout_marginTop="17sp" />
-    
-    <TextView
-        android:id="@+id/textViewP1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_above="@+id/textViewAltd"
+        android:layout_alignEnd="@+id/textViewTitleBarometerPressureAltitude"
+        android:layout_alignRight="@+id/textViewTitleBarometerPressureAltitude"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/textViewTitleAltdDiff"
-        android:layout_marginEnd="70sp"
-        android:layout_marginRight="70sp"
-        android:layout_marginTop="17sp" />
+        android:layout_marginEnd="26dp"
+        android:layout_marginRight="26dp"
+        android:layout_marginLeft="26dp"
+        android:layout_toRightOf="@+id/buttonFinish"
+        android:layout_toEndOf="@+id/buttonFinish"
+        android:text="Hello"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" />
 
-    <Button
-        android:id="@+id/buttonStart"
+    <TextView
+        android:id="@+id/textViewTitleMinEventDelay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewAltdDiff"
-        android:layout_marginTop="19dp"
-        android:layout_marginStart="70sp"
-        android:layout_marginLeft="70sp"
-        android:onClick="startClick"
-        android:text="@string/start" />
+        android:layout_alignLeft="@+id/TextViewTitleAltd"
+        android:layout_alignStart="@+id/TextViewTitleAltd"
+        android:layout_below="@+id/TextViewTitleAltd"
+        android:text="@string/min_event_delay"
+        android:textColor="#0835C9"
+        android:textSize="15sp" />
 
-    <Button
-        android:id="@+id/buttonFinish"
+    <TextView
+        android:id="@+id/textViewMinDelay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/buttonStart"
-        android:layout_alignBottom="@+id/buttonStart"
-        android:layout_marginStart="170sp"
-        android:layout_marginLeft="170sp"
-        android:onClick="finishClick"
-        android:text="@string/finish" />
+        android:layout_alignLeft="@+id/textViewAltd"
+        android:layout_alignStart="@+id/textViewAltd"
+        android:layout_below="@+id/textViewAltd"
+        android:text="Hello"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/textViewTitleMean"
+        android:textColor="#0835C9"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitleMinEventDelay"
+        android:layout_alignStart="@+id/textViewTitleMinEventDelay"
+        android:layout_below="@+id/textViewTitleMinEventDelay"
+        android:layout_marginTop="18dp"
+        android:text="@string/mean_pressure" />
+
+    <TextView
+        android:id="@+id/textViewMean"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewTitleMean"
+        android:layout_alignBottom="@+id/textViewTitleMean"
+        android:layout_alignLeft="@+id/textViewMinDelay"
+        android:layout_alignStart="@+id/textViewMinDelay"
+        android:text="Hello"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/textViewTitleStdDev"
+        android:textColor="#0835C9"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewTitleMean"
+        android:layout_alignStart="@+id/textViewTitleMean"
+        android:layout_below="@+id/textViewTitleMean"
+        android:text="@string/pressure_std_dev" />
+
+    <TextView
+        android:id="@+id/textViewStdDev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewTitleStdDev"
+        android:layout_alignBottom="@+id/textViewTitleStdDev"
+        android:layout_alignLeft="@+id/textViewMean"
+        android:layout_alignStart="@+id/textViewMean"
+        android:text="Hello"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/textViewLastBufferValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStdDev"
+        android:layout_alignStart="@+id/textViewStdDev"
+        android:layout_below="@+id/textViewStdDev"
+        android:text="Hello"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" />
 
 </RelativeLayout>

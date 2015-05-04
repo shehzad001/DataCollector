@@ -13,7 +13,20 @@ import android.support.v7.app.ActionBarActivity;
 //import org.w3c.dom.NodeList;
 
 //import android.renderscript.Element;
-import android.widget.TextView;
+
+
+
+
+
+
+
+
+//import android.provider.DocumentsContract.Document;
+//import android.util.Log;
+import java.text.DecimalFormat;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.hardware.Sensor;
@@ -21,20 +34,34 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-//import android.provider.DocumentsContract.Document;
-//import android.util.Log;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
+
+class constants{
+	public static final double std_ceiling_height = 2.6; 
+	public static final double std_floor_slab = 0.2;
+	public static final double min_lower_bound = std_floor_slab + std_ceiling_height;
+	public static final int max_upper_bound = 5;
+}
 
 public class PressureSensor extends ActionBarActivity{
-
-
-
+	
+	
+	
+	
+	
+	
 	
 	
 
+
 	
+/*
+* This code explains how to retrieve sea level atmospheric pressure information from a given longitude and latitude using WeatherBug’s API.
+*/
 /*
 	@SuppressLint("InlinedApi")
 	private float sea_level_pressure = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
@@ -115,14 +142,15 @@ public class PressureSensor extends ActionBarActivity{
 		return nValue.getNodeValue();
 	}
 */	
+	
+	
+	
+	
+	
+	
+	
+	
 
-	
-	
-	
-	
-	
-	
-	
 
 	
 	private static SensorManager mSensorManager = null;
@@ -132,14 +160,29 @@ public class PressureSensor extends ActionBarActivity{
 	static TextView tvAltd;
 	static TextView tvP0, tvP1;
 	static TextView tvAltdDiff;
-//	Button btStart, btFinish;
-	
+	static TextView tvLevel;
+	static TextView tvUpperThreh;
+	static TextView tvMinDelay;
+	static TextView tvMean;
+	static TextView tvStdDev;
+	static TextView tvLastBufferValue;
 			
-	static float pressure_value = 0.0f;
+	static DecimalFormat accValue = new DecimalFormat("###,###.##");
+	static float pressureValue = 0.0f;
+	static float currentHeight = 0.0f;
+	static float initialHeight = 0.0f;
 	static float fltvP0 = 0.0f;
 	static float fltvP1 = 0.0f;
+	static float altitude_difference;
+	static float flUpperThreh = (float) constants.min_lower_bound;
 
+	static boolean startClickFlag;
+	static int rateChangedFlag;
+	static int intlevel = 0;
 	
+	static float meanPressure = 0;
+	static float pressureStdDev = 0;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -154,62 +197,193 @@ public class PressureSensor extends ActionBarActivity{
 		tvP0 = (TextView)findViewById(R.id.textViewP0);
 		tvP1 = (TextView)findViewById(R.id.textViewP1);
 		tvAltdDiff = (TextView)findViewById(R.id.textViewAltdDiff);
-//		btStart = (Button)findViewById(R.id.buttonStart);
-//		btStart = (Button)findViewById(R.id.buttonFinish);
+		tvLevel = (TextView) findViewById(R.id.textViewLevelChanged);
+		tvUpperThreh = (TextView) findViewById(R.id.textViewUpperThres);
+		tvMinDelay = (TextView) findViewById(R.id.textViewMinDelay);
 		
+		tvUpperThreh.setText("" + accValue.format(constants.min_lower_bound));
+
+		tvMean = (TextView) findViewById(R.id.textViewMean);
+		tvStdDev = (TextView) findViewById(R.id.textViewStdDev);
+		tvLastBufferValue = (TextView) findViewById(R.id.textViewLastBufferValue);
+
+		rateChangedFlag = 0;
+		tvMinDelay.setText("" + rateChangedFlag);
+		
+// To check any value on display...
+//		tvP1.setText("" + flUpperThreh);
+		
+		TimerTask rateChangeTask = new TimerTask(){
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				
+				mSensorManager.unregisterListener(mSensorListener);
+				
+				for(int i=0; i<128; i++){
+					meanPressure += buffer[i];
+				}
+				meanPressure /= buffer_size;
+				
+				float var = 0;
+				for(int j=0; j<128 ; j++){
+					var += ((meanPressure - buffer[j]) * (meanPressure - buffer[j]));
+				}
+				var /= buffer_size;
+				pressureStdDev = (float) Math.sqrt(var);
+				
+				// Again Register the Sensor with sampling rate equal to 1 Hz 
+				rateChangedFlag = 1;
+				mSensorManager.registerListener(mSensorListener,mPressure,1000000); // 1000000u sec = 1 sec
+				
+//				tvMinDelay.setText("" + rateChangedFlag);
+			}
+			
+		};
+		
+		/*----------	T I M E R	---------------------*/
+		
+		Timer initialCalculation = new Timer();
+		initialCalculation.schedule(rateChangeTask, 22000); 	// for 5 seconds
 	}
 	
 
+	public final static class Debug{
+	    private Debug (){}
+
+	    public static void out (Object msg){
+	        Log.i ("info", msg.toString ());
+	    }
+	}
+	
 	public static void startClick(View v){	
 //		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_NORMAL);
-		tvP0.setText("" + pressure_value);
+		tvP0.setText("" + pressureValue);
+		initialHeight = currentHeight;			// Saving the current altitude
+
+		intlevel = 0;
+		tvLevel.setText("" + intlevel);
+		altitude_difference = 0;
+		tvAltdDiff.setText("" + altitude_difference);
+		startClickFlag = true;					// Set flag to 1
 	}
 
 	@SuppressLint({ "NewApi", "InlinedApi" })
-	public static void finishClick(View v){
-		float altitude_difference;
-		
+	public static void finishClick(View v){		
 //		mSensorManager.unregisterListener(mSensorListener);
-		tvP1.setText("" + pressure_value);
+		tvP1.setText("" + pressureValue);
+		
+		fltvP0 = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP0.getText().toString()));
 		fltvP1 = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP1.getText().toString()));
-		fltvP0 =  SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP0.getText().toString()));
-		altitude_difference = fltvP1 - fltvP0;
-		tvAltdDiff.setText("" + altitude_difference);
+
+		altitude_difference = Math.abs(fltvP1 - fltvP0);
+		tvAltdDiff.setText("" + accValue.format(altitude_difference));
+		startClickFlag = false;					// Set flag to 0
+	}
+
+
+// Make a user defined Threshold strictly ranging from 2.8m - 5m
+// than incorporate this to calculate the height of levels !!!
+
+	public static void upperThres(View v){
+		String strUpperThreh;
+		
+		strUpperThreh = tvUpperThreh.getText().toString();
+		flUpperThreh = Float.parseFloat(strUpperThreh);
+
+		switch(v.getId()){
+			case R.id.buttonMinusThres:
+				if(flUpperThreh > 2.8){
+					flUpperThreh -= 0.1;
+					tvUpperThreh.setText("" + accValue.format(flUpperThreh));
+				} break;
+				// else display toast notification !
+			case R.id.buttonPlusThres:
+				if(flUpperThreh < 5){
+					flUpperThreh += 0.1;
+					tvUpperThreh.setText("" + accValue.format(flUpperThreh));
+				} break;
+				// else display toast notification !
+		}
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
 		// register this class as a listener for the Pressure Sensor
-		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_GAME);
 	}
 
 	@Override
 	protected void onPause() {
-		// unregister listener
 		super.onPause();
+		// unregister listener
 		mSensorManager.unregisterListener(mSensorListener);
 	}
-
 	
+	
+	static int counter = 0;
+	static final int buffer_size = 128;
+	static float[] buffer = new float[buffer_size];
+	static int i = buffer_size - 1;
+
 	private static SensorEventListener mSensorListener = new SensorEventListener(){
 
 		@SuppressLint("NewApi")
 		@Override
 		public void onSensorChanged(SensorEvent event) {
 			
-			float height = 0.0f;
-
 			// if you use this listener as listener of only one sensor (ex, Pressure) , then you don' t need to check sensor type
 			if( Sensor.TYPE_PRESSURE == event.sensor.getType() ){
-				pressure_value = event.values[0];
-				tvPress.setText("" + pressure_value);
-				height = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, pressure_value);
-				tvAltd.setText("" + height);
+				pressureValue = event.values[0];
+				tvPress.setText("" + accValue.format(pressureValue));
+				currentHeight = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, pressureValue);
+				tvAltd.setText("" + accValue.format(currentHeight));
+
+//				tvMinDelay.setText("" + event.sensor.getMinDelay());
+				
+				if(startClickFlag){
+					if(currentHeight > (initialHeight + flUpperThreh)){
+						initialHeight = currentHeight;
+						intlevel += 1;
+						tvLevel.setText("" + (intlevel));
+					}
+					else if(currentHeight < initialHeight - flUpperThreh){
+						initialHeight = currentHeight;
+						intlevel -= 1;
+						tvLevel.setText("" + (intlevel));
+					}
+				}
+				
+				switch(rateChangedFlag){
+					case 1:	// at Rate equals 1 Hz
+							tvMinDelay.setText("" + rateChangedFlag);
+							tvMean.setText("" + meanPressure);
+							tvStdDev.setText("" + pressureStdDev);
+							tvLastBufferValue.setText("" + buffer[i]);
+							tvMinDelay.setText("" + rateChangedFlag);
+							
+							if(i <= 26){
+								i = buffer_size - 1;
+							}
+							i--;
+							break;
+
+					case 0: // at Rate equals 0.02 equivalent to 50 samples per second (scroll for 5 seconds)
+							if(counter >= 128){
+								counter = 0;
+							}
+							
+							buffer[counter] = pressureValue;
+							Debug.out ("" + buffer[counter]);
+							counter++;
+							break;
+					
+					default: break;
+				}
 			}
 		}
-
-
 		
 		@Override
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {
