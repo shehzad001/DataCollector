@@ -21,9 +21,13 @@ import android.support.v7.app.ActionBarActivity;
 
 
 
+
+
+
 //import android.provider.DocumentsContract.Document;
 //import android.util.Log;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,6 +38,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,6 +50,15 @@ class constants{
 	public static final double std_floor_slab = 0.2;
 	public static final double min_lower_bound = std_floor_slab + std_ceiling_height;
 	public static final int max_upper_bound = 5;
+	
+	public static final double alpha = 0.5;	
+	public static final double gamma = 0.5;	
+
+	public static final int period_in_msec = 1000;
+	public static final int delay_in_msec = 1000;
+	public static final int mainBuffer_size = 14;			// aprox. 14-17 samples in 3 sec(depending on sensor events), therefore rolling back
+															// aprox. 3-6 samples in 1 sec(depending on sensor events), therefore rolling back
+	public static final int tempBuffer_size = 3;			// Don't know why 5 instead of 3 ???
 }
 
 public class PressureSensor extends ActionBarActivity{
@@ -177,11 +191,13 @@ public class PressureSensor extends ActionBarActivity{
 	static float flUpperThreh = (float) constants.min_lower_bound;
 
 	static boolean startClickFlag;
-	static int rateChangedFlag;
 	static int intlevel = 0;
 	
-	static float meanPressure = 0;
-	static float pressureStdDev = 0;
+	static int rateChangedFlag;	
+	// Creating the Handler object
+	Handler rateChangedHandler = new Handler();
+	static float bestEstimationValue;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -213,42 +229,244 @@ public class PressureSensor extends ActionBarActivity{
 // To check any value on display...
 //		tvP1.setText("" + flUpperThreh);
 		
+		// Initializing...
+		for(int i = 0; i<constants.mainBuffer_size; i++){
+			mainBuffer[i] = 0;
+		}
+		for(int i = 0; i<constants.tempBuffer_size; i++){
+			tempBuffer[i] = 0;
+		}
+		
+
+		/*----------	T I M E R	T A S K		---------------------*/
+
 		TimerTask rateChangeTask = new TimerTask(){
+
+			private int j;
+			private float[] soomthenedBuffer = new float[constants.mainBuffer_size - 1];
 
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
+//				mSensorManager.unregisterListener(mSensorListener);
 				
-				mSensorManager.unregisterListener(mSensorListener);
+				// Raising the flag so that sensor event will not overwrite the values in mainBuffer...
+				rateChangedFlag = 1;
+				Debug.out("\n/*----------	S M O O T H I N G	---------------------*/");
 				
-				for(int i=0; i<128; i++){
-					meanPressure += buffer[i];
+
+				/*----------	S M O O T H I N G	---------------------*/
+
+				for(j = 0; j<constants.mainBuffer_size-1; j++){
+					soomthenedBuffer[j] = 0;
 				}
-				meanPressure /= buffer_size;
+				
+				// calculating initial values...
+				soomthenedBuffer[0] = mainBuffer[1];
+				bestEstimationValue = mainBuffer[1] - mainBuffer[0];
+				
+				for(j = 1; j<constants.mainBuffer_size-1; j++){
+					soomthenedBuffer[j] = (float) (constants.alpha * mainBuffer[j+1] + 
+							constants.alpha * (soomthenedBuffer[j-1] + bestEstimationValue) );
+					bestEstimationValue = (float) (constants.gamma * (soomthenedBuffer[j] - soomthenedBuffer[j-1]) +
+							constants.gamma * bestEstimationValue); 
+				}
+
+				// debuging...
+				Debug.out ("on [0] " + mainBuffer[0]);
+
+				// copy data to mainBuffer...
+				for(j = 0; j<constants.mainBuffer_size-1; j++){
+					mainBuffer[j+1] = soomthenedBuffer[j];  
+					Debug.out ("on [" + (j+1) + "] - " + mainBuffer[j+1]);
+				}
+				
+
+				// Defining local variables...
+/*				float meanPressure = 0;
+				float pressureStdDev = 0;
+				
+				// calculate the parameters: Mean and SD
+				meanPressure = 0;
+				for(j=0; j<constants.mainBuffer_size; j++){
+					meanPressure += mainBuffer[j];
+				}
+				meanPressure /= constants.mainBuffer_size;
 				
 				float var = 0;
-				for(int j=0; j<128 ; j++){
-					var += ((meanPressure - buffer[j]) * (meanPressure - buffer[j]));
+				for(j=0; j<constants.mainBuffer_size; j++){
+					var += ((meanPressure - mainBuffer[j]) * (meanPressure - mainBuffer[j]));
 				}
-				var /= buffer_size;
+				var /= constants.mainBuffer_size;
 				pressureStdDev = (float) Math.sqrt(var);
+*/				
 				
+				// Debug...
+//				Don't know why it is not setting text on textViews ???
+/*				tvMean.setText("" + meanPressure);
+				tvStdDev.setText("" + pressureStdDev);
+				tvMinDelay.setText("" + rateChangedFlag);
+*/
+				Debug.out("\n/*----------	T E M P - B U F F E R - S T A R T E D	----------*/");
+
+
+				/*----------	T I M E R	T A S K		---------------------*/
+
+				TimerTask postAfterOneSec = new TimerTask() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						
+						// post on a Thread for periodic execution...
+						// Execute a runnable task as soon as possible
+						rateChangedHandler.post(runnableCode);
+					}
+				};
+				
+
+				/*----------	T I M E R	---------------------*/
+
+				Timer oneSec = new Timer();
+				oneSec.schedule(postAfterOneSec, constants.period_in_msec);
+
 				// Again Register the Sensor with sampling rate equal to 1 Hz 
-				rateChangedFlag = 1;
-				mSensorManager.registerListener(mSensorListener,mPressure,1000000); // 1000000u sec = 1 sec
-				
-//				tvMinDelay.setText("" + rateChangedFlag);
+//				mSensorManager.registerListener(mSensorListener,mPressure,1000000); // 1000000u sec = 1 sec
 			}
 			
 		};
+
 		
 		/*----------	T I M E R	---------------------*/
 		
 		Timer initialCalculation = new Timer();
-		initialCalculation.schedule(rateChangeTask, 22000); 	// for 5 seconds
+		initialCalculation.schedule(rateChangeTask, constants.period_in_msec * 3); 	// for 3 seconds --- having (14-15) sample values...
+}
+	
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		// register this class as a listener for the Pressure Sensor
+		mainCounter = 0;
+		tempCounter = 0;
+		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_FASTEST);
+	}
+
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		// Removes pending code execution
+		rateChangedHandler.removeCallbacks(runnableCode);				
+
+		// unregister listener
+		mSensorManager.unregisterListener(mSensorListener);
 	}
 	
 
+	// Define the task to be run here
+	private Runnable runnableCode = new Runnable() {
+
+		private int i;
+	    private int counter = 0;
+	    private float median;
+		private float meanPressure = 0;
+		private float pressureStdDev = 0;
+		private float soomthenedValue = 0;
+	    private float[] b = new float[tempBuffer.length];
+	    
+		@Override
+	    public void run() {
+	      // Do something here
+
+			Log.e("Handlers", "Called");
+
+			// Debug...
+			Debug.out("Mean = " + meanPressure);
+			Debug.out("SD = " + pressureStdDev);
+			tvMean.setText("" + meanPressure);
+			tvStdDev.setText("" + pressureStdDev);
+
+			// Calculate Median...
+			System.arraycopy(tempBuffer, 0, b, 0, b.length);
+			Arrays.sort(b);
+
+			if (tempBuffer.length % 2 == 0){
+				median =  (float)((b[(b.length / 2) - 1] + b[b.length / 2]) / 2.0);
+			} 
+			else{
+				median =  b[b.length / 2];
+			}
+			
+			
+			/*----------	S M O O T H I N G	---------------------*/
+			
+			if(mainCounter > 0){
+				soomthenedValue = (float) (constants.alpha * median + 
+						constants.alpha * (mainBuffer[mainCounter - 1] + bestEstimationValue) );
+				bestEstimationValue = (float) (constants.gamma * (soomthenedValue - mainBuffer[mainCounter - 1]) +
+						constants.gamma * bestEstimationValue); 
+
+				// Debug...
+				Debug.out ("PrevValue at [" + (mainCounter - 1) + "] = " + mainBuffer[mainCounter - 1]);
+				Debug.out ("Median = " + median);
+				Debug.out ("soomthenedValue = " + soomthenedValue);
+			}
+			else{
+				soomthenedValue = (float) (constants.alpha * median + 
+						constants.alpha * (mainBuffer[constants.mainBuffer_size - 1] + bestEstimationValue) );
+				bestEstimationValue = (float) (constants.gamma * (soomthenedValue - mainBuffer[constants.mainBuffer_size - 1]) +
+						constants.gamma * bestEstimationValue); 
+
+				// Debug...
+				Debug.out ("PrevValue at [" + (constants.mainBuffer_size - 1) + "] = " + mainBuffer[constants.mainBuffer_size - 1]);
+				Debug.out ("Median = " + median);
+				Debug.out ("soomthenedValue = " + soomthenedValue);
+			}
+			
+
+			//Putting it at the tail of mainBuffer...
+			if(mainCounter >= constants.mainBuffer_size){
+				mainCounter = 0;			// Roll back...
+			}
+
+			mainBuffer[mainCounter] = soomthenedValue;
+			Debug.out ("MainCounter at [" + mainCounter + "] = " + mainBuffer[mainCounter]);
+			mainCounter++;
+			
+			// calculate the parameters: Mean and SD
+			meanPressure = 0;
+			for(i=0; i<constants.mainBuffer_size; i++){
+				meanPressure += mainBuffer[i];
+			}
+			meanPressure /= constants.mainBuffer_size;
+			
+			float var = 0;
+			for(i=0; i<constants.mainBuffer_size; i++){
+				var += ((meanPressure - mainBuffer[i]) * (meanPressure - mainBuffer[i]));
+			}
+			var /= constants.mainBuffer_size;
+			pressureStdDev = (float) Math.sqrt(var);
+			
+			// Repeat this runnable code block again every 1 sec, hence periodic execution...
+			rateChangedHandler.postDelayed(runnableCode, constants.delay_in_msec);
+
+			// Debug...
+			if(counter >= 1){
+				// unregister listener
+				mSensorManager.unregisterListener(mSensorListener);
+				// Removes pending code execution
+				rateChangedHandler.removeCallbacks(runnableCode);				
+			}
+			counter++;
+		}
+		
+		
+	};
+	
+	
 	public final static class Debug{
 	    private Debug (){}
 
@@ -256,82 +474,21 @@ public class PressureSensor extends ActionBarActivity{
 	        Log.i ("info", msg.toString ());
 	    }
 	}
+
 	
-	public static void startClick(View v){	
-//		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_NORMAL);
-		tvP0.setText("" + pressureValue);
-		initialHeight = currentHeight;			// Saving the current altitude
+	static int mainCounter = 0;
+	static float[] mainBuffer = new float[constants.mainBuffer_size];
 
-		intlevel = 0;
-		tvLevel.setText("" + intlevel);
-		altitude_difference = 0;
-		tvAltdDiff.setText("" + altitude_difference);
-		startClickFlag = true;					// Set flag to 1
-	}
-
-	@SuppressLint({ "NewApi", "InlinedApi" })
-	public static void finishClick(View v){		
-//		mSensorManager.unregisterListener(mSensorListener);
-		tvP1.setText("" + pressureValue);
-		
-		fltvP0 = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP0.getText().toString()));
-		fltvP1 = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP1.getText().toString()));
-
-		altitude_difference = Math.abs(fltvP1 - fltvP0);
-		tvAltdDiff.setText("" + accValue.format(altitude_difference));
-		startClickFlag = false;					// Set flag to 0
-	}
-
-
-// Make a user defined Threshold strictly ranging from 2.8m - 5m
-// than incorporate this to calculate the height of levels !!!
-
-	public static void upperThres(View v){
-		String strUpperThreh;
-		
-		strUpperThreh = tvUpperThreh.getText().toString();
-		flUpperThreh = Float.parseFloat(strUpperThreh);
-
-		switch(v.getId()){
-			case R.id.buttonMinusThres:
-				if(flUpperThreh > 2.8){
-					flUpperThreh -= 0.1;
-					tvUpperThreh.setText("" + accValue.format(flUpperThreh));
-				} break;
-				// else display toast notification !
-			case R.id.buttonPlusThres:
-				if(flUpperThreh < 5){
-					flUpperThreh += 0.1;
-					tvUpperThreh.setText("" + accValue.format(flUpperThreh));
-				} break;
-				// else display toast notification !
-		}
-	}
+	static int tempCounter = 0;
+	static float[] tempBuffer = new float[constants.tempBuffer_size];
 	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		// register this class as a listener for the Pressure Sensor
-		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_GAME);
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		// unregister listener
-		mSensorManager.unregisterListener(mSensorListener);
-	}
-	
-	
-	static int counter = 0;
-	static final int buffer_size = 128;
-	static float[] buffer = new float[buffer_size];
-	static int i = buffer_size - 1;
-
 	private static SensorEventListener mSensorListener = new SensorEventListener(){
 
+		private long[] eventTime = new long[constants.mainBuffer_size];
+		private int[] eventAcc = new int[constants.mainBuffer_size];
+
 		@SuppressLint("NewApi")
-		@Override
+		@Override		
 		public void onSensorChanged(SensorEvent event) {
 			
 			// if you use this listener as listener of only one sensor (ex, Pressure) , then you don' t need to check sensor type
@@ -358,26 +515,32 @@ public class PressureSensor extends ActionBarActivity{
 				
 				switch(rateChangedFlag){
 					case 1:	// at Rate equals 1 Hz
-							tvMinDelay.setText("" + rateChangedFlag);
-							tvMean.setText("" + meanPressure);
-							tvStdDev.setText("" + pressureStdDev);
-							tvLastBufferValue.setText("" + buffer[i]);
-							tvMinDelay.setText("" + rateChangedFlag);
-							
-							if(i <= 26){
-								i = buffer_size - 1;
+							if(tempCounter >= constants.tempBuffer_size){
+								tempCounter = 0;			// Roll back...
 							}
-							i--;
+							
+							tempBuffer[tempCounter] = event.values[0];
+							eventTime[tempCounter] = event.timestamp;
+							eventAcc[tempCounter] = event.accuracy;
+							Debug.out ("on [" + tempCounter + "] - " + tempBuffer[tempCounter] + " time interval " + eventTime[tempCounter] + " with Acc = " + eventAcc[tempCounter]);
+							tempCounter++;
+							
+							// Debug...
+							tvMinDelay.setText("" + rateChangedFlag);
 							break;
 
 					case 0: // at Rate equals 0.02 equivalent to 50 samples per second (scroll for 5 seconds)
-							if(counter >= 128){
-								counter = 0;
+							// [all 4 types of delay options are not working], therefore
+							// using 3 sec timer to fill the buffer, giving appox. (14-15) sample values...
+							if(mainCounter >= constants.mainBuffer_size){
+								mainCounter = 0;			// Roll back...
 							}
 							
-							buffer[counter] = pressureValue;
-							Debug.out ("" + buffer[counter]);
-							counter++;
+							mainBuffer[mainCounter] = event.values[0];
+							eventTime[mainCounter] = event.timestamp;
+							eventAcc[mainCounter] = event.accuracy;
+							Debug.out ("on [" + mainCounter + "] - " + mainBuffer[mainCounter] + " time interval " + eventTime[mainCounter] + " with Acc = " + eventAcc[mainCounter]);
+							mainCounter++;
 							break;
 					
 					default: break;
@@ -397,11 +560,81 @@ public class PressureSensor extends ActionBarActivity{
 	
 	
 	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void startClick(View v){	
+//		mSensorManager.registerListener(mSensorListener,mPressure,SensorManager.SENSOR_DELAY_NORMAL);
+		tvP0.setText("" + pressureValue);
+		initialHeight = currentHeight;			// Saving the current altitude
+
+		intlevel = 0;
+		tvLevel.setText("" + intlevel);
+		altitude_difference = 0;
+		tvAltdDiff.setText("" + altitude_difference);
+		startClickFlag = true;					// Set flag to 1
+	}
+
+	
+	@SuppressLint({ "NewApi", "InlinedApi" })
+	public static void finishClick(View v){		
+//		mSensorManager.unregisterListener(mSensorListener);
+		tvP1.setText("" + pressureValue);
+		
+		fltvP0 = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP0.getText().toString()));
+		fltvP1 = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, Float.parseFloat(tvP1.getText().toString()));
+
+		altitude_difference = Math.abs(fltvP1 - fltvP0);
+		tvAltdDiff.setText("" + accValue.format(altitude_difference));
+		startClickFlag = false;					// Set flag to 0
+	}
+
+
+	// Make a user defined Threshold strictly ranging from 2.8m - 5m
+	// than incorporate this to calculate the height of levels !!!
+	public static void upperThres(View v){
+		String strUpperThreh;
+		
+		strUpperThreh = tvUpperThreh.getText().toString();
+		flUpperThreh = Float.parseFloat(strUpperThreh);
+
+		switch(v.getId()){
+			case R.id.buttonMinusThres:
+				if(flUpperThreh > constants.min_lower_bound){
+					flUpperThreh -= 0.1;
+					tvUpperThreh.setText("" + accValue.format(flUpperThreh));
+				} break;
+				// else display toast notification !
+			case R.id.buttonPlusThres:
+				if(flUpperThreh < constants.max_upper_bound){
+					flUpperThreh += 0.1;
+					tvUpperThreh.setText("" + accValue.format(flUpperThreh));
+				} break;
+				// else display toast notification !
+		}
+	}
+	
+	
+	
+	
 	
 	
 	
 
 
+	
+
+	
+	
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

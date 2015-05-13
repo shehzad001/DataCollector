@@ -1,0 +1,103 @@
+    <TextView
+        android:id="@+id/textViewTitleBarometerPressureAltitude"
+        android:text="@string/baro_air_pres"
+		android:textSize="20sp"
+		android:textColor="#0835C9" />
+
+    <TextView
+        android:id="@+id/textViewTitlePress"
+        android:text="@string/title"
+		android:textSize="15sp"
+        android:textColor="#0835C9" />
+
+    <TextView
+        android:id="@+id/TextViewTitleAltd"
+        android:text="@string/Altitude"
+		android:textSize="15sp"
+        android:textColor="#0835C9" />
+
+    <TextView
+        android:id="@+id/textViewTitlePressDiff"
+        android:text="@string/press_diff"
+		android:textSize="15sp"
+        android:textColor="#0835C9" />
+
+    <TextView
+        android:id="@+id/textViewTitleAltdDiff"
+        android:text="@string/alt_diff"
+		android:textSize="15sp"
+        android:textColor="#0835C9" />
+
+    <TextView
+        android:id="@+id/textViewTitleLevelChanged"
+        android:text="@string/level_changed"
+		android:textSize="15sp"
+        android:textColor="#0835C9" />
+
+    <TextView
+        android:id="@+id/textViewTitleUpperThres"
+        android:text="@string/upper_threshold"
+		android:textSize="15sp"
+        android:textColor="#0835C9" />
+
+    <Button
+        android:id="@+id/buttonStart"
+        android:onClick="startClick"
+        android:text="@string/start" />
+
+    <Button
+        android:id="@+id/buttonFinish"
+        android:onClick="finishClick"
+        android:text="@string/finish" />
+
+    <Button
+        android:id="@+id/buttonMinusThres"
+        android:text="@string/minus_threshold" />
+
+    <Button
+        android:id="@+id/buttonPlusThres"
+        android:text="@string/plus_threshold" />
+
+    <TextView
+        android:id="@+id/textViewPress"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+		android:text="Hello" />
+    
+    <TextView
+        android:id="@+id/textViewAltd"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" 
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewP0"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" 
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewP1"
+        android:textColor="#08C9BD"
+        android:textSize="15sp" 
+		android:text="Hello" />
+    
+    <TextView
+        android:id="@+id/textViewAltdDiff"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewLevelChanged"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+		android:text="Hello" />
+
+    <TextView
+        android:id="@+id/textViewUpperThres"
+        android:textColor="#08C9BD"
+        android:textSize="15sp"
+		android:text="Hello" />
+
+/> <!-- android:text="Hello" /> -->
